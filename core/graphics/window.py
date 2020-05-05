@@ -1,4 +1,8 @@
-import pygame
+# suppress pygame welcome message
+import os, contextlib
+with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
+    import pygame
+
 import core.graphics.sprites as sprites
 
 
@@ -82,7 +86,9 @@ class StaticGameWindow:
 
     def event_handler(self):
         """ Handle events in window """
+        # Refresh values
         self.mclk = False
+        self.midx = None
 
         for event in pygame.event.get():
 
@@ -133,10 +139,10 @@ class StaticGameWindow:
                 psprite = ORB_PL1 if ccount > 0 else ORB_PL2
                 self.win.blit(psprite[abs(ccount) - 1], pos)
 
-    def draw_all(self, state, plr):
-        """ Draw all members of window """
+    def draw_all(self, board, plr):
+        """ Draw all elements and update display """
         self.clear()
-        self.draw_orbs(state)
+        self.draw_orbs(board)
         self.draw_nxpl(plr)
         self.draw_grid()
         self.update()
