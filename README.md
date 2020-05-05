@@ -1,4 +1,4 @@
-# AI for Chain Reaction Game
+# Chain Reaction AI
 AI opponent for the strategic board game Chain Reaction.
 
 ## Usage
