@@ -1,5 +1,5 @@
 # The base engine driving Chain Reactions
-# Handles all the logic for the game
+# Contains the bare minimum logic functions
 
 
 import queue
@@ -11,7 +11,7 @@ NTABLE = None
 
 
 # ----------- INIT -----------------
-def init(shape=(9, 6)):
+def init(shape):
     """ Calculate variables and cache tables """
     global SHAPE, NTABLE
 
@@ -33,29 +33,7 @@ def init(shape=(9, 6)):
     NTABLE = tuple(NTABLE)
 
 
-# ---------- HELPERS ---------------
-def territory_count(board, plrid) -> tuple:
-    """ Get territory counts (player, enemy) """
-    one, two = 0, 0
-    for elem in board:
-        one += elem < 0
-        two += elem > 0
-    return (one, two) if plrid else (two, one)
-
-
 # --------- INTERACTION ------------
-def interact_view(board: list, move: int, plrid: int):
-    """
-    Interact with Chain Reaction Environment
-    Returns view of outcome
-    """
-
-    board_dupl = board[:]
-    gmovr = interact_inplace(board_dupl, move, plrid)
-
-    return (board_dupl, gmovr)
-
-
 def interact_inplace(board: list, move: int, plrid: int):
     """
     Interact with Chain Reaction Environment
@@ -73,7 +51,13 @@ def interact_inplace(board: list, move: int, plrid: int):
     work.put(move)
 
     # store counts (friend, enemy)
-    t_frn, t_enm = territory_count(board, plrid)
+    t_frn, t_enm = 0, 0
+    for elem in board:
+        t_frn += elem > 0
+        t_enm += elem < 0
+
+    # swap counts if plrid is 1
+    t_frn, t_enm = (t_enm, t_frn) if plrid else (t_frn, t_enm)
 
     while not (work.empty() or gmovr):
         # get next index in queue
@@ -94,44 +78,3 @@ def interact_inplace(board: list, move: int, plrid: int):
             [work.put(i) for i in ntable[idx]]
 
     return gmovr
-
-
-# ---------- GAME CLASS ------------
-class GameEngine(object):
-    def __init__(self):
-        """ Chain Reaction Game Engine """
-
-        # error if not init
-        assert SHAPE, "Game Engine not initialized"
-
-        # game state
-        self.board = [0] * SHAPE[0] * SHAPE[1]
-        self.plrid = 0
-
-        # outcome
-        self.gmovr = False
-        self.winnr = 2
-
-    def fast_play(self, move) -> bool:
-        """
-        Calculate the next state of the board
-        -------------------------------------
-        Input   : move index (tuple or int)
-        Returns : success boolean
-        """
-
-        # setup
-        idx = move[0] * SHAPE[1] + move[1] if type(move) == tuple else move
-        psign = -1 if self.plrid else 1
-
-        # invalid condition
-        if (self.board[idx] * psign < 0) or self.gmovr:
-            return False
-
-        # interact inplace
-        self.gmovr = interact_inplace(self.board, idx, self.plrid)
-        self.winnr = self.plrid if self.gmovr else 2
-
-        # toggle player
-        self.plrid = 1 - self.plrid
-        return True

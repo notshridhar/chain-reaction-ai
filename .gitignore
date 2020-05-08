@@ -1,4 +1,6 @@
 .vscode/
 .DS_Store
 __pycache__/
+csource/build/
+core/backends/c_ext/
 tests/

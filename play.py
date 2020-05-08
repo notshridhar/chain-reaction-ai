@@ -1,10 +1,8 @@
-#!/usr/bin/env python
-
 import argparse
 import time
 
-import core.engine as game
-import core.agents.minimax as agent
+import core.wrappers.engine as game
+import core.wrappers.minimax as agent
 import core.graphics.window as window
 
 
@@ -31,7 +29,7 @@ def human_vs_human():
         print("Red Wins!")
 
 
-def human_vs_minimax(rand=True, depth=1):
+def human_vs_minimax(depth=1, rand=True):
     # main classes
     win = window.StaticGameWindow()
     eng = game.GameEngine()
@@ -72,23 +70,35 @@ def human_vs_minimax(rand=True, depth=1):
 
 
 def main():
-    # init modules
-    shape = (9, 6)
-    game.init(shape)
-    window.init(shape)
-
     # parse arguments
     parser = argparse.ArgumentParser(description="Chain Reaction")
     parser.add_argument(
         "enemy", type=str, help="Opponent to play with - [human, minimax]",
     )
+    parser.add_argument(
+        "-c", "--c-backend", help="Use c for processing", action="store_true",
+    )
     args = parser.parse_args()
+
+    # store variables
+    shape = (9, 6)
+    backend = "c" if args.c_backend else "python"
+    if args.c_backend:
+        print("Using C backend")
+
+
+    # initialize modules
+    window.init(shape)
+    game.init(shape, backend=backend)
+    agent.init(backend=backend)
 
     # choose game
     if args.enemy == "human":
         human_vs_human()
     elif args.enemy == "minimax":
         human_vs_minimax()
+    else:
+        print("Error: invalid enemy choice " + str(args.enemy))
 
 
 main()
