@@ -75,7 +75,7 @@ def score_minimizer(board, player, alpha, beta) -> int:
     for idx in range(len(board)):
 
         # skip invalid moves
-        if (board[idx] * esign < 0):
+        if board[idx] * esign < 0:
             continue
 
         # prune immediately if game over
@@ -113,7 +113,7 @@ def pruned_minimizer(board, player, alpha, beta, depth) -> int:
     for idx in range(len(board)):
 
         # skip invalid moves
-        if (board[idx] * esign < 0):
+        if board[idx] * esign < 0:
             continue
 
         # prune immediately if game over
@@ -146,7 +146,7 @@ def pruned_maximizer(board, player, alpha, beta, depth) -> int:
     for idx in range(len(board)):
 
         # skip invalid moves
-        if (board[idx] * psign < 0):
+        if board[idx] * psign < 0:
             continue
 
         # prune immediately if game over
@@ -155,7 +155,9 @@ def pruned_maximizer(board, player, alpha, beta, depth) -> int:
             return 10000
 
         # update score and beta
-        score = max(score, pruned_minimizer(cboard, player, alpha, beta, depth - 1))
+        score = max(
+            score, pruned_minimizer(cboard, player, alpha, beta, depth - 1)
+        )
         alpha = max(alpha, score)
 
         # alpha-beta pruning
@@ -164,3 +166,35 @@ def pruned_maximizer(board, player, alpha, beta, depth) -> int:
 
     return score
 
+
+def load_scores(board, player, depth) -> list:
+    """ Get the scores of all moves of board """
+
+    # setup
+    alpha = -10000
+    psign = -1 if player else 1
+    score_list = [0] * len(board)
+
+    # searching all nodes (conditional return inside)
+    for idx in range(len(board)):
+
+        # mark invalid moves
+        if board[idx] * psign < 0:
+            score_list[idx] = -20000
+            continue
+
+        # interact with board
+        cboard = board[:]
+        game_over = engine.interact_inplace(cboard, idx, player)
+
+        # mark winning move (no use of other scores)
+        if game_over:
+            score_list[idx] = 10000
+            return score_list
+
+        # store score and update alpha
+        score = pruned_minimizer(cboard, player, alpha, 10000, depth - 1)
+        score_list[idx] = score
+        alpha = max(alpha, score)
+
+    return score_list

@@ -3,7 +3,7 @@
 
 
 /* Critical Mass Lookup Table */
-static int NTABLE [9 * 6] = {
+static const int NTABLE [9 * 6] = {
     2, 3, 3, 3, 3, 2,
     3, 4, 4, 4, 4, 3,
     3, 4, 4, 4, 4, 3,

@@ -1,104 +1,99 @@
+import os
+import contextlib
 import argparse
 import time
 
-import core.wrappers.engine as game
-import core.wrappers.minimax as agent
-import core.graphics.window as window
+# suppress welcome messages
+with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
+    import core.wrappers.engine as game
+    import core.wrappers.minimax as agent
+    import core.graphics.window as window
 
 
-def human_vs_human():
-    # main classes
-    win = window.StaticGameWindow()
-    eng = game.GameEngine()
+def get_args():
+    """ Function to parse all arguments """
 
-    # main loop
-    while win.open and not eng.gmovr:
+    # fmt: off
+    parser = argparse.ArgumentParser(description="Chain Reaction")
+    parser.add_argument(
+        "enemy",
+        type=str,
+        help="Opponent to play with - [human, minimax]",
+    )
+    parser.add_argument(
+        "--depth",
+        type=int,
+        help="maximum tree depth for searching",
+        default=1,
+        metavar="",
+    )
+    parser.add_argument(
+        "--c-backend",
+        action="store_true",
+        help="Use c for processing",
+    )
+    parser.add_argument(
+        "--random",
+        type=int,
+        help="agent picks one out of n best moves randomly",
+        default=3,
+        metavar="",
+    )
+    args = parser.parse_args()
+    # fmt: on
 
-        # trigger only when mouse clicked
-        if win.midx is not None:
-            eng.fast_play(win.midx)
-            win.draw_all(eng.board, eng.plrid)
-
-        # handle events
-        win.event_handler()
-
-    # print winner
-    if eng.winnr == 1:
-        print("Green Wins!")
-    elif eng.winnr == 0:
-        print("Red Wins!")
+    return args
 
 
-def human_vs_minimax(depth=1, rand=True):
-    # main classes
-    win = window.StaticGameWindow()
-    eng = game.GameEngine()
+def check_validity(args):
 
-    cpu_turn = False
-    req_draw = True
-    samples = 3 if rand else 1
+    # args - depth
+    if args.depth <= 0:
+        raise ValueError("Depth has to be positive")
+    if args.depth >= 3:
+        raise ValueError("Ridiculously slow for depth %d" % args.depth)
 
-    # main loop
-    while win.open and not eng.gmovr:
+    # args - random
+    if args.random <= 0:
+        raise ValueError("Randomness has to be positive")
 
-        # for agent
-        if cpu_turn:
-            best_move = agent.move_chooser(eng.board, 1, depth, samples)
-            eng.fast_play(best_move)
-            req_draw = True
-            cpu_turn = False
-
-        # for human player
-        else:
-            if win.midx is not None and eng.fast_play(win.midx):
-                req_draw = True
-                cpu_turn = True
-
-        # acknowledge draw request
-        if req_draw:
-            req_draw = False
-            win.draw_all(eng.board, eng.plrid)
-
-        # handle events
-        win.event_handler()
-
-    # print winner
-    if eng.winnr == 1:
-        print("CPU Wins!")
-    elif eng.winnr == 0:
-        print("You Win!")
+    # args - enemy
+    if args.enemy not in ["human", "minimax"]:
+        raise ValueError("Invalid enemy choice", args.enemy)
 
 
 def main():
-    # parse arguments
-    parser = argparse.ArgumentParser(description="Chain Reaction")
-    parser.add_argument(
-        "enemy", type=str, help="Opponent to play with - [human, minimax]",
-    )
-    parser.add_argument(
-        "-c", "--c-backend", help="Use c for processing", action="store_true",
-    )
-    args = parser.parse_args()
 
-    # store variables
+    args = get_args()
+    check_validity(args)
+
     shape = (9, 6)
-    backend = "c" if args.c_backend else "python"
-    if args.c_backend:
-        print("Using C backend")
 
+    # args - backend
+    backend = "c" if args.c_backend else "python"
+    print("Using %s backend" % backend)
+
+    # args - enemy
+    if args.enemy == "human":
+        agent_func = None
+    elif args.enemy == "minimax":
+        agent_func = lambda x: agent.best_move(x, 1, args.depth, args.random)
 
     # initialize modules
     window.init(shape)
-    game.init(shape, backend=backend)
-    agent.init(backend=backend)
+    game.init(shape, backend)
+    agent.init(backend)
 
-    # choose game
-    if args.enemy == "human":
-        human_vs_human()
-    elif args.enemy == "minimax":
-        human_vs_minimax()
-    else:
-        print("Error: invalid enemy choice " + str(args.enemy))
+    # class instances
+    g_window = window.StaticGameWindow()
+    g_engine = game.GameEngine()
+
+    # main loop inside here
+    g_window.main_loop(g_engine, None, agent_func)
+
+    # print winner
+    winner = ["Red", "Green", "No one"][g_engine.winnr]
+    print(str(winner) + " Wins!")
 
 
 main()

@@ -2,8 +2,13 @@
 #include "chain/minimax.h"
 
 
+/* constants */
+static const int WIN_SCORE = +10000;
+static const int LOS_SCORE = -10000;
+
+
 /* Critical Mass Lookup Table */
-static char NTABLE [9 * 6] = {
+static const char NTABLE [9 * 6] = {
     2, 3, 3, 3, 3, 2,
     3, 4, 4, 4, 4, 3,
     3, 4, 4, 4, 4, 3,
@@ -16,10 +21,14 @@ static char NTABLE [9 * 6] = {
 };
 
 
-/* Heuristic Evaluation Functions (in favor of player) */
-static int WIN_SCORE = +10000;
-static int LOS_SCORE = -10000;
+/* Static Function Declarations */
+static int minimax__evaluation_score (int *, int);
+static int minimax__score_minimizer  (int *, int, int, int);
+static int minimax__pruned_minimizer (int *, int, int, int, int);
+static int minimax__pruned_maximizer (int *, int, int, int, int);
 
+
+/* Heuristic Evaluation Functions (in favor of player) */
 static int
 minimax__evaluation_score ( int  *board,
                             int   player )
@@ -37,6 +46,7 @@ minimax__evaluation_score ( int  *board,
         c_enm_arr[i] = ((board[i] * psign) == (1 - NTABLE[i]));
     }
 
+    /* Single pass for evaluation */
     for (int i = 0; i < 54; ++i)
     {
         int plr_orbs = board[i] * psign;
@@ -93,7 +103,7 @@ minimax__evaluation_score ( int  *board,
 
 
 /* Direct Evaluation Minimizer Level */
-int
+static int
 minimax__score_minimizer  ( int  *board,
                             int   player,
                             int   alpha,
@@ -133,7 +143,7 @@ minimax__score_minimizer  ( int  *board,
 
 
 /* Minimax Minimizer Level (RECURSIVE) */
-int
+static int
 minimax__pruned_minimizer ( int  *board,
                             int   player,
                             int   alpha,
@@ -178,7 +188,7 @@ minimax__pruned_minimizer ( int  *board,
 
 
 /* Minimax Maximizer Level (RECURSIVE) */
-int
+static int
 minimax__pruned_maximizer ( int  *board,
                             int   player,
                             int   alpha,
@@ -213,4 +223,40 @@ minimax__pruned_maximizer ( int  *board,
 
     /* Return after search is completed */
     return score;
+}
+
+
+/* Load scores of moves in an array */
+void 
+minimax__load_scores ( int  *board,
+                       int  *score_list,
+                       int   player,
+                       int   depth )
+{
+    int alpha = LOS_SCORE;
+    int psign = player ? -1 : 1;
+    int new_board[54];
+
+    /* search all nodes (winning move stops search) */
+    for (int i = 0; i < 54; ++i)
+    {
+        /* skip invalid move after marking */
+        if (board[i] * psign < 0)
+        {
+            score_list[i] = -20000;
+            continue;
+        }
+
+        /* interact with board */
+        if (engine__interact(board, new_board, i, player))
+        {
+            score_list[i] = WIN_SCORE;
+            return;
+        }
+
+        /* store score and update alpha */
+        int score = minimax__pruned_minimizer(new_board, player, alpha, WIN_SCORE, depth - 1);
+        score_list[i] = score;
+        alpha = (alpha > score) ? alpha : score;
+    }
 }

@@ -3,33 +3,16 @@
 
 
 /**
- * Minimax Minimizer Level (RECURSIVE)
- * -----------------------------------
- * integrated alpha-beta pruning
- * if depth is zero, returns minimized static evaluation score
- * else returns minimized score from lower depths
+ * Load minimax scores for every move
+ * ----------------------------------
+ * Memory allocated array score_list
+ * must be passed to store the values
  */
-int
-minimax__pruned_minimizer ( int  *board,
-                            int   player,
-                            int   alpha,
-                            int   beta,
-                            int   depth );
-
-
-/**
- * Minimax Maximizer Level (RECURSIVE)
- * -----------------------------------
- * integrated alpha-beta pruning
- * depth should never be zero
- * returns maximized score of lower depths
- */
-int
-minimax__pruned_maximizer ( int  *board,
-                            int   player,
-                            int   alpha,
-                            int   beta,
-                            int   depth );
+void
+minimax__load_scores ( int  *board,
+                       int  *score_list,
+                       int   player,
+                       int   depth );
 
 
 #endif

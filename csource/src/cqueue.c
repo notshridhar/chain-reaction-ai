@@ -11,12 +11,14 @@ CQueue *cqueue__create(int capacity)
     return nq;
 }
 
+
 void cqueue__destory(CQueue *self)
 {
     free(self->arr);
     free(self);
     self->arr = NULL;
 }
+
 
 /* Returns true if success, false if failed */
 char cqueue__enqueue(CQueue *self, int element)
@@ -25,6 +27,7 @@ char cqueue__enqueue(CQueue *self, int element)
     self->tail = (self->tail + 1) % self->size;
     return (self->tail == self->head);
 }
+
 
 /**
  * Warning: No size checking, can retrieve garbage data
@@ -36,6 +39,7 @@ int cqueue__dequeue(CQueue *self)
     self->head = (self->head + 1) % self->size;
     return element;
 }
+
 
 char cqueue__isempty(CQueue *self)
 {

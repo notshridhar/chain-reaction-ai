@@ -16,23 +16,16 @@
 
 
 /* Function declarations */
-static PyObject *py__minimizer (PyObject *self, PyObject *args);
-static PyObject *py__maximizer (PyObject *self, PyObject *args);
+static PyObject *py__load_scores (PyObject *self, PyObject *args);
 
 
 /* Function Mapping Table*/
 static PyMethodDef MiniMaxMethods[] = {
     {
-        "pruned_minimizer",
-        py__minimizer,
+        "load_scores",
+        py__load_scores,
         METH_VARARGS,
-        "Minimax Recursive Minimizer"
-    },
-    {
-        "pruned_maximizer",
-        py__maximizer,
-        METH_VARARGS,
-        "Minimax Recursive Maximizer"
+        "Get the scores of all moves of board"
     },
     {NULL, NULL, 0, NULL} // sentinel
 };
@@ -56,17 +49,15 @@ PyMODINIT_FUNC PyInit_minimax_agent(void)
 
 
 /******************* FUNCTION DEFINITIONS *********************/
-static PyObject *py__minimizer (PyObject *self, PyObject *args)
+static PyObject *py__load_scores (PyObject *self, PyObject *args)
 {
     /* Expecting arguments */
     PyObject *board;
     int       player;
-    int       alpha;
-    int       beta;
     int       depth;
 
     /* Parse Arguments */
-    if (!PyArg_ParseTuple(args, "Oiiii", &board, &player, &alpha, &beta, &depth))
+    if (!PyArg_ParseTuple(args, "Oii", &board, &player, &depth))
         return NULL;
 
     /* PyList -> C Array */
@@ -77,35 +68,14 @@ static PyObject *py__minimizer (PyObject *self, PyObject *args)
     }
 
     /* Actual Stuff */
-    int score = minimax__pruned_minimizer(cboard, player, alpha, beta, depth);
+    int score_list[54] = {0};
+    minimax__load_scores(cboard, score_list, player, depth);
 
-    /* Build Python integer */
-    return Py_BuildValue("i", score);
-}
-
-static PyObject *py__maximizer (PyObject *self, PyObject *args)
-{
-    /* Expecting arguments */
-    PyObject *board;
-    int       player;
-    int       alpha;
-    int       beta;
-    int       depth;
-
-    /* Parse Arguments */
-    if (!PyArg_ParseTuple(args, "Oiiii", &board, &player, &alpha, &beta, &depth))
-        return NULL;
-
-    /* PyList -> C Array */
-    int cboard[54];
+    /* Build Python List */
+    PyObject *py_score_list = PyList_New(54);
     for (int i = 0; i < 54; ++i)
     {
-        cboard[i] = (int)PyLong_AsLong(PyList_GetItem(board, i));
+        PyList_SetItem(py_score_list, i, PyLong_FromLong((long)score_list[i]));
     }
-
-    /* Actual Stuff */
-    int score = minimax__pruned_maximizer(cboard, player, alpha, beta, depth);
-
-    /* Build Python integer */
-    return Py_BuildValue("i", score);
+    return py_score_list;
 }

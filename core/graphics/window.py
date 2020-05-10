@@ -1,8 +1,4 @@
-# suppress pygame welcome message
-import os, contextlib
-with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
-    import pygame
-
+import pygame
 import core.graphics.sprites as sprites
 
 
@@ -58,25 +54,13 @@ class StaticGameWindow:
     def __init__(self):
         """ Display static graphics for the game """
 
-        # warn if not init
-        assert W_DIMS, "Window not initialized"
-
         # window
         self.win = pygame.display.set_mode(W_DIMS)
-        self.clk = pygame.time.Clock()
-
-        # params
         self.open = True
 
         # mouse click and index
         self.midx = None
         self.mclk = False
-
-        # draw empty grid
-        self.clear()
-        self.draw_nxpl(0)
-        self.draw_grid()
-        self.update()
 
     def clear(self):
         self.win.fill(COL_BCK)
@@ -103,8 +87,6 @@ class StaticGameWindow:
                 idx = ((cry - G_VOFF) // G_WIDC, (crx - G_HOFF) // G_WIDC)
                 val = (0 <= idx[0] < G_SHAP[1]) * (0 <= idx[1] < G_SHAP[0])
                 self.midx = idx if val else None
-
-        self.clk.tick(40)
 
     def draw_nxpl(self, plr):
         """ Draw rectangle to indicate next player """
@@ -139,10 +121,52 @@ class StaticGameWindow:
                 psprite = ORB_PL1 if ccount > 0 else ORB_PL2
                 self.win.blit(psprite[abs(ccount) - 1], pos)
 
-    def draw_all(self, board, plr):
-        """ Draw all elements and update display """
-        self.clear()
-        self.draw_orbs(board)
-        self.draw_nxpl(plr)
-        self.draw_grid()
-        self.update()
+    def main_loop(self, engine, agent1_func, agent2_func):
+        """
+        Play game with agents
+        ---------------------
+        - engine      - GameEngine Object
+        - agent1_func - function that outputs move for agent 1
+        - agent2_func - function that outputs move for agent 2
+        """
+
+        clok = pygame.time.Clock()
+
+        plr_turn = True
+        req_draw = True
+
+        # construct human agent functions
+        if agent1_func is None:
+            agent1_func = lambda x: self.midx
+        if agent2_func is None:
+            agent2_func = lambda x: self.midx
+
+        # play until game over or closed
+        while not engine.gmovr and self.open:
+
+            # player 1
+            if plr_turn:
+                move = agent1_func(engine.board)
+                if move is not None and engine.fast_play(move):
+                    plr_turn = False
+                    req_draw = True
+
+            # player 2
+            else:
+                move = agent2_func(engine.board)
+                if move is not None and engine.fast_play(move):
+                    plr_turn = True
+                    req_draw = True
+
+            # acknowledge draw request
+            if req_draw:
+                req_draw = False
+                self.clear()
+                self.draw_orbs(engine.board)
+                self.draw_nxpl(engine.plrid)
+                self.draw_grid()
+                self.update()
+
+            # handle events and limit fps
+            self.event_handler()
+            clok.tick(40)

@@ -3,25 +3,27 @@ AI opponent for the strategic board game Chain Reaction.
 
 ## Usage
     $ python3 play.py --help
-    usage: play.py [-h] [-c] enemy
+    usage: play.py [-h] [--depth] [--c-backend] [--random] enemy
 
     Chain Reaction
 
     positional arguments:
-    enemy            Opponent to play with - [human, minimax]
+    enemy        Opponent to play with - [human, minimax]
 
     optional arguments:
-    -h, --help       show this help message and exit
-    -c, --c-backend  Use c for processing
+    -h, --help   show this help message and exit
+    --depth      maximum tree depth for searching
+    --c-backend  Use c for processing
+    --random     agent picks random move out of n best moves
 
 
 ## Enemy Agents
 Here is a list of agents you can play against -
-1. __Minimax__ : With tree search depth of 3 and 5 plies.
+1. __Minimax__ : Simple DFS to minimize loss. Very hard to beat because of the aggressive static board evaluation function.
 
 
 ## Building C Modules
-C backend modules are written to increase the search speed dramatically. To compile them and copy the libraries to the required folder, run build.sh.
+C backend modules are written to increase the search speed dramatically. To compile them and copy the libraries to the required folder, run `./build.sh`.
 
 
 ## Game Rules

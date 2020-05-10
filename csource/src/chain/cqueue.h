@@ -1,13 +1,12 @@
+#ifndef CIRC_QUEUE_H
+#define CIRC_QUEUE_H
+
+
 /**
  * Circular Queue of Integers
  * --------------------------
  * FIFO Data Structure
  */
-
-#ifndef CIRC_QUEUE_H
-#define CIRC_QUEUE_H
-
-
 typedef struct
 {
     int head;
@@ -17,7 +16,7 @@ typedef struct
 } CQueue;
 
 
-/* CQueue Methods */
+/* CQueue Global Functions */
 CQueue   *cqueue__create  (int capacity);
 void      cqueue__destory (CQueue *self);
 char      cqueue__enqueue (CQueue *self, int element);
