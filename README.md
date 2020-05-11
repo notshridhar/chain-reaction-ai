@@ -3,7 +3,7 @@ AI opponent for the strategic board game Chain Reaction.
 
 ## Usage
     $ python3 play.py --help
-    usage: play.py [-h] [--depth] [--c-backend] [--random] enemy
+    usage: play.py [-h] [--c-backend] enemy
 
     Chain Reaction
 
@@ -12,14 +12,16 @@ AI opponent for the strategic board game Chain Reaction.
 
     optional arguments:
     -h, --help   show this help message and exit
-    --depth      maximum tree depth for searching
     --c-backend  Use c for processing
-    --random     agent picks random move out of n best moves
 
 
 ## Enemy Agents
 Here is a list of agents you can play against -
 1. __Minimax__ : Simple DFS to minimize loss. Very hard to beat because of the aggressive static board evaluation function.
+
+
+## Configurations
+Agent Configurations can be found in config directory.
 
 
 ## Building C Modules

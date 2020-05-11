@@ -59,8 +59,8 @@ class StaticGameWindow:
         self.open = True
 
         # mouse click and index
-        self.midx = None
         self.mclk = False
+        self.midx = None
 
     def clear(self):
         self.win.fill(COL_BCK)
@@ -123,8 +123,8 @@ class StaticGameWindow:
 
     def main_loop(self, engine, agent1_func, agent2_func):
         """
-        Play game with agents
-        ---------------------
+        Play graphical game with agents
+        -------------------------------
         - engine      - GameEngine Object
         - agent1_func - function that outputs move for agent 1
         - agent2_func - function that outputs move for agent 2
