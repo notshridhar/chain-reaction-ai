@@ -8,7 +8,7 @@ AI opponent for the strategic board game Chain Reaction.
     Chain Reaction
 
     positional arguments:
-    enemy        Opponent to play with - [human, minimax]
+    enemy        Opponent to play with - [human, minimax, mcts]
 
     optional arguments:
     -h, --help   show this help message and exit
@@ -18,6 +18,7 @@ AI opponent for the strategic board game Chain Reaction.
 ## Enemy Agents
 Here is a list of agents you can play against -
 1. __Minimax__ : Simple DFS to minimize loss. Very hard to beat because of the aggressive static board evaluation function.
+2. __MCTS__ : Naive Monte Carlo Tree Search that simulates games randomly. Looks easy, but thrives in endgame.
 
 
 ## Configurations

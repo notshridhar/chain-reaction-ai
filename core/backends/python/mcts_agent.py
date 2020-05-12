@@ -77,7 +77,7 @@ class MCTSVisitedNode:
         Choose child of node with maximum UCT score
         Return None if there are no children
         """
-        b_score = 0
+        b_score = -math.inf
         b_child = None
 
         for child in self.children:
