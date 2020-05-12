@@ -6,10 +6,12 @@ import time
 
 # configuration
 import config.minimax as mmconfig
+import config.mcts as mctsconfig
 
 # engines
 import core.wrappers.engine as game
 import core.wrappers.minimax as minimax
+import core.wrappers.mcts as mcts
 
 # suppress welcome messages
 with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
@@ -24,7 +26,7 @@ def get_args():
     parser.add_argument(
         "enemy",
         type=str,
-        help="Opponent to play with - [human, minimax]",
+        help="Opponent to play with - [human, minimax, mcts]",
     )
     parser.add_argument(
         "--c-backend",
@@ -41,12 +43,13 @@ def check_validity(args):
     """ Raise ValueErrors if the arguments are invalid """
 
     # args - enemy
-    if args.enemy not in ["human", "minimax"]:
+    if args.enemy not in ["human", "minimax", "mcts"]:
         raise ValueError("Invalid enemy choice", args.enemy)
 
 
 def main():
 
+    # get valid args
     args = get_args()
     check_validity(args)
 
@@ -63,11 +66,17 @@ def main():
         mm_depth = mmconfig.DEPTH
         mm_randn = mmconfig.RANDOM
         agent_func = lambda x: minimax.best_move(x, 1, mm_depth, mm_randn)
+    elif args.enemy == "mcts":
+        assert backend != "c", "MCTS not implemented in c"
+        mcts_time_lim = mctsconfig.TIME_LIMIT
+        mcts_param = mctsconfig.C_PARAM
+        agent_func = lambda x: mcts.best_move(x, 1, mcts_time_lim, mcts_param)
 
-    # initialize modules
+    # initialize modules for backend
     window.init(shape)
     game.init(shape, backend)
     minimax.init(backend)
+    mcts.init(backend)
 
     # class instances
     gwindow = window.StaticGameWindow()

@@ -167,6 +167,7 @@ def pruned_maximizer(board, player, alpha, beta, depth) -> int:
     return score
 
 
+# ---------- OUTER FUNCTION --------------
 def load_scores(board, player, depth) -> list:
     """ Get the scores of all moves of board """
 

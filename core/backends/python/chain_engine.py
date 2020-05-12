@@ -33,17 +33,24 @@ def init(shape):
     NTABLE = tuple(NTABLE)
 
 
-# --------- INTERACTION ------------
-def interact_inplace(board: list, move: int, plrid: int):
+# --------- CORE FUNCTIONS ------------
+def valid_board_moves(board: list, player) -> list:
+    """ List of all valid move indices on board for player """
+    psign = -1 if player else 1
+    return [i for i, b_elem in enumerate(board) if b_elem * psign >= 0]
+
+
+def interact_inplace(board: list, move: int, plrid: int) -> bool:
     """
     Interact with Chain Reaction Environment
     Modifies board inplace
+    Note: Does not check if game was over, do checking outside
     """
 
     # setup
     ntable = NTABLE
     psign = -1 if plrid else 1
-    gmovr = False
+    game_over = False
 
     # using queue to sequentialize steps
     # near cells are calculated first
@@ -59,14 +66,14 @@ def interact_inplace(board: list, move: int, plrid: int):
     # swap counts if plrid is 1
     t_frn, t_enm = (t_enm, t_frn) if plrid else (t_frn, t_enm)
 
-    while not (work.empty() or gmovr):
+    while not (work.empty() or game_over):
         # get next index in queue
         idx = work.get()
 
         # update territory counts and game over flag
         t_frn += 1
         t_enm -= board[idx] * psign < 0
-        gmovr = (t_enm + t_frn > 2) and (t_enm * t_frn == 0)
+        game_over = (t_enm + t_frn > 2) and (t_enm * t_frn == 0)
 
         # update orb count according to rule
         orbct = abs(board[idx]) + 1
@@ -77,4 +84,4 @@ def interact_inplace(board: list, move: int, plrid: int):
         if orbct == maxcp:
             [work.put(i) for i in ntable[idx]]
 
-    return gmovr
+    return game_over
