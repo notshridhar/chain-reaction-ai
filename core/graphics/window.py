@@ -395,8 +395,9 @@ class AnimatedGameWindow(BaseGameWindow):
         message = "GREEN WINS!" if game.winner else "RED WINS!"
         mscolor = (100, 255, 50) if game.winner else (255, 100, 50)
         game_over_text = font_instance.render(message, True, mscolor)
-        text_dest = (G_DIMS[0] // 2 - 45, G_DIMS[1] // 2)
-        blit_text = lambda : self.surface.blit(game_over_text, text_dest)
+        text_w, text_h = game_over_text.get_size()
+        text_dest = (W_DIMS[0] // 2 - text_w // 2, W_DIMS[1] // 2 - text_h // 2)
+        blit_text = lambda: self.surface.blit(game_over_text, text_dest)
 
         # keep exploding for cool end-graphics
         while self.open and game.pending_moves:
