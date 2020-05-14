@@ -2,7 +2,7 @@ import time
 import math
 import random
 
-import core.backends.python.chain_engine as game
+import core.wrappers.engine as engine
 
 
 # --------- UTILITY FUNCTIONS -----------
@@ -20,12 +20,12 @@ def forward_roll_once(state, player) -> tuple:
     """
 
     # rollout policy: random
-    valid_moves = game.valid_board_moves(state, player)
+    valid_moves = engine.valid_board_moves(state, player)
     chosen_move = random.choice(valid_moves)
 
     # interact with env
     next_state = state[:]
-    game_over = game.interact_inplace(next_state, chosen_move, player)
+    game_over = engine.interact_inplace(next_state, chosen_move, player)
 
     if game_over:
         return (None, player)
@@ -46,7 +46,7 @@ class MCTSVisitedNode:
         self.parent = parent
         self.children = []  # will be populated later
 
-        self.unvisited = game.valid_board_moves(state, player) if state else []
+        self.unvisited = engine.valid_board_moves(state, player) if state else []
         self.is_terminal = False if state else True
 
         self.visits = 0
@@ -63,7 +63,7 @@ class MCTSVisitedNode:
 
         # perform action and get state and game over
         next_state = self.state[:]
-        game_over = game.interact_inplace(next_state, action, self.player)
+        game_over = engine.interact_inplace(next_state, action, self.player)
         next_state = None if game_over else next_state
 
         # construct child node and add to children

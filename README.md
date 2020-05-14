@@ -3,22 +3,24 @@ AI opponent for the strategic board game Chain Reaction.
 
 ## Usage
     $ python3 play.py --help
-    usage: play.py [-h] [--c-backend] enemy
+    usage: play.py [-h] [--minimal] [--c-backend] enemy
 
     Chain Reaction
 
     positional arguments:
-    enemy        Opponent to play with - [human, minimax, mcts]
+    enemy        Opponent to play with - [human, random, mcts, minimax]
 
     optional arguments:
     -h, --help   show this help message and exit
+    --minimal    Play in a minimal non-animated window
     --c-backend  Use c for processing
 
 
 ## Enemy Agents
-Here is a list of agents you can play against -
-1. __Minimax__ : Simple DFS to minimize loss. Very hard to beat because of the aggressive static board evaluation function.
-2. __MCTS__ : Naive Monte Carlo Tree Search that simulates games randomly. Looks easy, but thrives in endgame.
+Here is a list of agents you can play against (in ascending levels of difficulty)
+1. __Random__ : Just a random move maker that picks from valid moves.
+2. __MCTS__ : Naive Monte Carlo Tree Search that simulates games randomly. Needs long time to be good enough.
+3. __Minimax__ : Simple DFS to minimize loss. Very hard to beat because of the aggressive static board evaluation function.
 
 
 ## Configurations

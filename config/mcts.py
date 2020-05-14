@@ -3,7 +3,7 @@
 
 # ===== MCTS Search Time =====
 # in seconds
-TIME_LIMIT = 0.2
+TIME_LIMIT = 1.0
 
 
 # ===== MCTS C Parameter =====

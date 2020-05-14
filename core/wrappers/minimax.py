@@ -11,7 +11,7 @@ load_scores = None
 
 
 # ----------- INIT -----------------
-def init(backend):
+def init(backend: str):
 
     global load_scores
 
@@ -29,7 +29,7 @@ def init(backend):
 
 
 # ------- WRAPPER FUNCTIONS --------
-def best_move(board, player, depth, randn) -> int:
+def best_move(board: list, player: int, depth: int, randn: int) -> int:
     """
     Get weighted random choice of best n moves
     If there is an immediate winning move, always return it
@@ -50,4 +50,3 @@ def best_move(board, player, depth, randn) -> int:
         return heatmap[0][0]
     else:
         return random.choices(m_moves, weights)[0]
-

@@ -15,7 +15,7 @@
 # "orphan"   : no adjacent critical friendly cells
 
 
-import core.backends.python.chain_engine as engine
+import core.wrappers.engine as engine
 
 
 # ------------ UTILITIES -------------

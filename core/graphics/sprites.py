@@ -8,17 +8,16 @@ import pygame.surfarray as surfarray
 def gaussian_blur(surface, std, strength):
     """
     Blur the given surface
-    Convolves pixel with gaussian kernel
-    Modifies surface inplace
+    Returns the modified surface
     """
 
-    matrix = surfarray.pixels3d(surface)
+    matrix = surfarray.array3d(surface)
     width = matrix.shape[1] // 2
 
     def in_gkernel():
-        # generate one dimensional gaussian kernel
+        # generate one dimensional kernel
         drange = lambda x: range(-x, 1 + x)
-        return [np.exp(-0.4 * abs(i)) for i in drange(width)]
+        return [np.exp(-std * abs(i)) for i in drange(width)]
 
     kern_l = in_gkernel()
     kernel = np.array(kern_l) / np.sum(kern_l)
@@ -35,6 +34,24 @@ def gaussian_blur(surface, std, strength):
         matrix[:, j, 0] = in_cnv(matrix[:, j, 0])
         matrix[:, j, 1] = in_cnv(matrix[:, j, 1])
         matrix[:, j, 2] = in_cnv(matrix[:, j, 2])
+
+    return surfarray.make_surface(matrix)
+
+
+def grayscale(surface, brightness=1.0):
+    """
+    Grayscales the surface
+    Returns the modified surface
+    """
+    array = surfarray.array3d(surface)
+    averages = [
+        [(r * 0.298 + g * 0.587 + b * 0.114) for (r, g, b) in col]
+        for col in array
+    ]
+    array = np.array(
+        [[[avg * brightness] * 3 for avg in col] for col in averages]
+    )
+    return surfarray.make_surface(array)
 
 
 # ----------- HIGH LEVEL -----------------
@@ -74,7 +91,7 @@ def construct_orbs(fore, back, width, glow_std=0.5, glow_stren=1.0):
         surf = pygame.Surface((width, width))
         surf.fill(back)
         in_flat_orbs(surf, num)
-        gaussian_blur(surf, glow_std, glow_stren)
+        surf = gaussian_blur(surf, glow_std, glow_stren)
         in_flat_orbs(surf, num)
         return surf
 

@@ -1,65 +1,166 @@
-# The On Init and Init sections contain variables and functors,
-# which will be modified by init function depending on backends.
-# The sole reason of their existance is to keep the linter happy.
+# The base engine driving Chain Reactions
+# Contains the bare minimum logic functions
+
+
+import queue
 
 
 # ---------- ON INIT ---------------
 SHAPE = None
-interact_inplace = None
+NTABLE = None
 
 
 # ----------- INIT -----------------
-def init(shape, backend):
-    global SHAPE
-    global interact_inplace
+def init(shape):
+    """ Calculate variables and cache tables """
+    global SHAPE, NTABLE
 
-    # setting up python engine
-    if backend == "python":
-        import core.backends.python.chain_engine as pengine
+    # store shape
+    SHAPE = shape
 
-        SHAPE = shape
-        pengine.init(shape=shape)
-        interact_inplace = pengine.interact_inplace
+    # store neighbor indices as tuple of tuples
+    s_h, s_w = shape
+    NTABLE = [0] * s_w * s_h
+    for idx in range(s_h * s_w):
+        i_y, i_x = idx // s_w, idx % s_w
+        temp = [
+            idx - s_w if i_y > 0 else None,
+            idx + s_w if i_y < s_h - 1 else None,
+            idx - 1 if i_x > 0 else None,
+            idx + 1 if i_x < s_w - 1 else None,
+        ]
+        NTABLE[idx] = tuple([i for i in temp if i is not None])
+    NTABLE = tuple(NTABLE)
 
-    # setting up c engine
-    else:
-        import core.backends.c_ext.chain_engine as cengine
 
-        if shape != (9, 6):
-            print("C Backend can only support 9 x 6 game")
-            print("Playing on 9 x 6 grid")
-        SHAPE = (9, 6)
-        interact_inplace = cengine.interact_inplace
+# --------- CORE FUNCTIONS ------------
+def valid_board_moves(board: list, player: int) -> list:
+    """ List of all valid move indices on board for player """
+
+    psign = -1 if player else 1
+    return [i for i, b_elem in enumerate(board) if b_elem * psign >= 0]
 
 
-# ------- WRAPPER FUNCTIONS --------
-def interact_view(board: list, move: int, plrid: int):
+def interact_inplace(board: list, move: int, player: int) -> bool:
+    """
+    Interact with Chain Reaction Environment
+    Modifies board inplace
+    Note: Does not check if game was over, do checking outside
+    """
+
+    # setup
+    psign = -1 if player else 1
+    game_over = False
+
+    # using queue to sequentialize steps
+    # near cells are calculated first
+    work = queue.Queue()
+    work.put(move)
+
+    # store counts
+    pos, neg = 0, 0
+    for elem in board:
+        pos += elem > 0
+        neg += elem < 0
+
+    # store only enemy count
+    t_frn, t_enm = (neg, pos) if player else (pos, neg)
+
+    while not (work.empty() or game_over):
+        # get next index in queue
+        idx = work.get()
+
+        # update territory count and game over flag
+        t_frn += 1
+        t_enm -= board[idx] * psign < 0
+        game_over = (t_frn + t_enm > 2) and (t_enm == 0)
+
+        # update orb count according to rule
+        orbct = abs(board[idx]) + 1
+        maxcp = len(NTABLE[idx])
+        board[idx] = (orbct % maxcp) * psign
+
+        # append next indices if exploded
+        if orbct == maxcp:
+            [work.put(i) for i in NTABLE[idx]]
+
+    return game_over
+
+
+def interact_onestep(board: list, moves: list, player: int) -> tuple:
+    """
+    Interact with chain reaction Environment in steps
+    Returns (next_moves, explosions, game_over)
+    """
+
+    # setup
+    psign = -1 if player else 1
+    next_moves = []
+    explosions = []
+
+    # first pass increments all cells
+    for move in moves:
+        board[move] = (abs(board[move]) + 1) * psign
+
+    # second pass gets all explosions (ignoring duplicates)
+    for move in set(moves):
+        # update orb count
+        orbct = abs(board[move])
+        maxcp = len(NTABLE[move])
+        board[move] = (orbct % maxcp) * psign
+
+        # explosion condition
+        if orbct >= maxcp:
+            explosions.append(move)
+
+            # see if neighbor is stable
+            for neighbor in NTABLE[move]:
+                ncount = (abs(board[neighbor]) + 1) % len(NTABLE[neighbor])
+
+                # append only unstable moves, else save final state
+                if ncount == 0:
+                    next_moves.append(neighbor)
+                else:
+                    board[neighbor] = (abs(board[neighbor]) + 1) * psign
+
+    # store counts
+    pos, neg = 0, 0
+    for elem in board:
+        pos += elem > 0
+        neg += elem < 0
+    
+    # if game is mature and any one is zero, game is over
+    game_over = (pos + neg >= 2) and (pos * neg == 0)
+    return (next_moves, explosions, game_over)
+
+
+def interact_view(board: list, move: int, player: int) -> tuple:
     """
     Interact with Chain Reaction Environment
     Returns view of outcome
     """
 
     board_dupl = board[:]
-    gmovr = interact_inplace(board_dupl, move, plrid)
+    gmovr = interact_inplace(board_dupl, move, player)
 
     return (board_dupl, gmovr)
 
 
 # ----------- CLASSES --------------
-class GameEngine(object):
+class ChainReactionGame:
     def __init__(self):
         """ Chain Reaction Game Engine """
         assert SHAPE, "Game Engine Module Not Initialized"
 
         # game state
         self.board = [0] * SHAPE[0] * SHAPE[1]
-        self.plrid = 0
+        self.player = 0
 
         # outcome
-        self.gmovr = False
-        self.winnr = 2
+        self.game_over = False
+        self.winner = 2
 
-    def fast_play(self, move) -> bool:
+    def make_move(self, move) -> bool:
         """
         Calculate the next state of the board
         -------------------------------------
@@ -68,17 +169,76 @@ class GameEngine(object):
         """
 
         # setup
-        idx = move if type(move) is int else move[0] * SHAPE[1] + move[1]
-        psign = -1 if self.plrid else 1
+        index = move if type(move) is int else move[0] * SHAPE[1] + move[1]
+        psign = -1 if self.player else 1
 
         # invalid condition
-        if (self.board[idx] * psign < 0) or self.gmovr:
+        if (self.board[index] * psign < 0) or self.game_over:
             return False
 
         # interact inplace
-        self.gmovr = interact_inplace(self.board, idx, self.plrid)
-        self.winnr = self.plrid if self.gmovr else 2
+        self.game_over = interact_inplace(self.board, index, self.player)
+        self.winner = self.player if self.game_over else 2
 
         # toggle player
-        self.plrid = 1 - self.plrid
+        self.player = 1 - self.player
         return True
+
+
+class ChainReactionAnimated:
+    def __init__(self):
+        """ Chain Reaction Animation Engine """
+        assert SHAPE, "Game Engine Module Not Initialized"
+
+        # game state
+        self.board = [0] * SHAPE[0] * SHAPE[1]
+        self.player = 0
+
+        # intermediate states
+        self.pending_moves = []
+
+        # outcome
+        self.game_over = False
+        self.winner = 2
+
+    def make_move(self, move) -> bool:
+        """
+        Start a move on board
+        Returns True if successful
+        Note: Call get_next_step repeatedly until board is stable
+        """
+        # setup
+        index = move if type(move) is int else move[0] * SHAPE[1] + move[1]
+        psign = -1 if self.player else 1
+
+        # invalid condition
+        if (self.board[index] * psign < 0) or self.game_over:
+            return False
+
+        self.pending_moves = [index]
+        return True
+
+    def get_next_step(self) -> tuple:
+        """
+        Calculate state of the board in steps
+        Returns (previous board, exploded indices)
+        Note: To be called repeatedly until exhausted after make_move
+        """
+
+        # invalid call -> return None tuple
+        if not self.pending_moves:
+            return (None, None)
+
+        # save previous board for animation
+        previous_board = self.board[:]
+        res = interact_onestep(self.board, self.pending_moves, self.player)
+
+        # unpack res and update
+        self.pending_moves, explosions, self.game_over = res
+        self.winner = self.player if self.game_over else 2
+
+        # update player if stable
+        if not self.pending_moves:
+            self.player = 1 - self.player
+        
+        return (previous_board, explosions)
