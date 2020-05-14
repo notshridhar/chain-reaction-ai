@@ -25,6 +25,7 @@ Here is a list of agents you can play against (in ascending levels of difficulty
 
 ## Configurations
 Agent Configurations can be found in config directory.
+The graphical configurations are stored as global variables in window.py
 
 
 ## Building C Modules
@@ -40,9 +41,9 @@ C backend modules are written to increase the search speed dramatically. To comp
 
 
 ## Gameplay
-A normal two player version looks like this - 
+A game against minimax agent looks like this - 
 
-![](images/two_player.gif)
+![](images/preview.gif)
 
 
 ## Dependencies
