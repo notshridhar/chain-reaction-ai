@@ -75,7 +75,7 @@ def construct_agent(oftype: str, player: int):
 def main():
 
     # default shape - not hardcoded
-    shape = (4, 4)
+    shape = (9, 6)
 
     # get valid args
     args = get_args()
