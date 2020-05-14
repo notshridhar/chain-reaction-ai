@@ -57,7 +57,9 @@ def construct_agent(oftype: str, player: int):
     elif oftype == "mcts":
         mcts_time_lim = mctsconfig.TIME_LIMIT
         mcts_param = mctsconfig.C_PARAM
-        agent_func = lambda x: mcts.best_move(x, player, mcts_time_lim, mcts_param)
+        agent_func = lambda x: mcts.best_move(
+            x, player, mcts_time_lim, mcts_param
+        )
 
     elif oftype == "minimax":
         mm_depth = mmconfig.DEPTH
@@ -73,7 +75,7 @@ def construct_agent(oftype: str, player: int):
 def main():
 
     # default shape - not hardcoded
-    shape = (9, 6)
+    shape = (4, 4)
 
     # get valid args
     args = get_args()
@@ -88,6 +90,9 @@ def main():
     # init minimax
     if args.enemy == "minimax":
         minimax.init(backend)
+        if backend == "c" and shape != (9, 6):
+            err_msg = "minimax in c cannot work with shape != (9, 6)"
+            raise ValueError(err_msg)
         print("Using %s backend for minimax" % backend)
 
     # init mcts
