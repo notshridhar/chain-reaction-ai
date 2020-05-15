@@ -17,13 +17,13 @@ def init(backend: str):
 
     # setting up c engine
     if backend == "c":
-        import core.backends.c_ext.minimax_agent as cagent
+        import chain_reaction.backends.c_ext.minimax_agent as cagent
 
         load_scores = cagent.load_scores
 
     # setting up python engine
     else:
-        import core.backends.python.minimax_agent as pagent
+        import chain_reaction.backends.python.minimax_agent as pagent
 
         load_scores = pagent.load_scores
 

@@ -4,15 +4,15 @@ import pygame
 import pygame.font as font
 import pygame.gfxdraw as gfxdraw
 
-import core.graphics.sprites as sprites
-import core.wrappers.engine as engine
+import chain_reaction.graphics.sprites as sprites
+import chain_reaction.wrappers.engine as engine
 
 
 # ----------- COLORS -------------
-COL_BCK = (0, 0, 0)
-COL_GRD = (255, 255, 255)
-COL_PL1 = (250, 100, 40)
-COL_PL2 = (40, 200, 100)
+COL_BACK = (0, 0, 0)
+COL_FORE = (255, 255, 255)
+COL_PLR1 = (250, 100, 40)
+COL_PLR2 = (40, 200, 100)
 
 
 # --------- DIMS -----------
@@ -54,8 +54,8 @@ def init(g_shape=(9, 6)):
 
     # construct sprites
     ORB_SIZ = G_WIDC - G_WALL
-    ORB_PL1 = sprites.construct_orbs(COL_PL1, COL_BCK, ORB_SIZ)
-    ORB_PL2 = sprites.construct_orbs(COL_PL2, COL_BCK, ORB_SIZ)
+    ORB_PL1 = sprites.construct_orbs(COL_PLR1, COL_BACK, ORB_SIZ)
+    ORB_PL2 = sprites.construct_orbs(COL_PLR2, COL_BACK, ORB_SIZ)
 
 
 # ---------- CLASSES -------------
@@ -77,7 +77,7 @@ class BaseGameWindow(ABC):
         self.midx = None
 
     def clear(self):
-        self.surface.fill(COL_BCK)
+        self.surface.fill(COL_BACK)
 
     def update(self):
         pygame.display.update()
@@ -110,7 +110,7 @@ class BaseGameWindow(ABC):
 
     def draw_indicator(self, player):
         """ Draw rectangle to indicate next player """
-        pcolor = COL_PL2 if player else COL_PL1
+        pcolor = COL_PLR2 if player else COL_PLR1
         nxrect = (G_HOFF, R_VOFF, G_DIMS[0], R_THIC)
         pygame.draw.rect(self.surface, pcolor, nxrect)
 
@@ -121,12 +121,12 @@ class BaseGameWindow(ABC):
         # horizontal lines
         for j in range(G_SHAP[1] + 1):
             grect = (G_HOFF, G_VOFF + j * G_WIDC, gwid, G_WALL)
-            pygame.draw.rect(self.surface, COL_GRD, grect)
+            pygame.draw.rect(self.surface, COL_FORE, grect)
 
         # vertical lines
         for i in range(G_SHAP[0] + 1):
             grect = (G_HOFF + i * G_WIDC, G_VOFF, G_WALL, ghgt)
-            pygame.draw.rect(self.surface, COL_GRD, grect)
+            pygame.draw.rect(self.surface, COL_FORE, grect)
 
     def draw_orbs(self, board, ignore=[]):
         """ Draw orb sprites on the surface """
@@ -168,49 +168,6 @@ class BaseGameWindow(ABC):
     def on_game_end(self, game):
         """ Game Over Callback """
         return
-
-    def main_loop(self, game, agent1_func, agent2_func):
-        """
-        Play graphical game with agents
-        -------------------------------
-        - game        - Game Instance
-        - agent1_func - function that outputs move for agent 1
-        - agent2_func - function that outputs move for agent 2
-        """
-
-        # splash screen
-        self.on_game_start()
-
-        # start game
-        self.on_game_move(game, None)
-
-        # construct human agent functions
-        if agent1_func is None:
-            agent1_func = lambda x: self.midx
-        if agent2_func is None:
-            agent2_func = lambda x: self.midx
-
-        # play until game over or closed
-        while not game.game_over and self.open:
-
-            # players alternate
-            if game.player == 0:
-                move = agent1_func(game.board)
-            else:
-                move = agent2_func(game.board)
-
-            # play move
-            if move is not None:
-                self.event_flush()  # agent takes long time
-                self.on_game_move(game, move)
-                move = None
-
-            # handle events and limit fps
-            self.event_handler()
-            self.clock.tick(self.fps)
-
-        # game over
-        self.on_game_end(game)
 
 
 class StaticGameWindow(BaseGameWindow):
@@ -268,7 +225,7 @@ class AnimatedGameWindow(BaseGameWindow):
         # setup
         gcol, grow = G_SHAP
         offx, offy = (G_HOFF + G_WALL, G_VOFF + G_WALL)
-        pcolor = COL_PL2 if player else COL_PL1
+        pcolor = COL_PLR2 if player else COL_PLR1
         prog_frac = progress / self.flight_steps
 
         for origin, dest in flights:
@@ -287,12 +244,16 @@ class AnimatedGameWindow(BaseGameWindow):
             gfxdraw.aacircle(self.surface, pos_x, pos_y, 10, pcolor)
             gfxdraw.filled_circle(self.surface, pos_x, pos_y, 10, pcolor)
 
-    def explode_orbs(self, board, explosions, player):
+    def explode_orbs(self, board, explosions, player, callback=None):
         """
         Show orb explosion animation
         Does not return until animation is over
         Internal event handling
         """
+
+        # immediate return if explosions are absent
+        if not explosions:
+            return
 
         # set up origin and final indices for flight
         flights = [
@@ -308,32 +269,7 @@ class AnimatedGameWindow(BaseGameWindow):
             self.draw_indicator(player)
             self.draw_orbs(board, ignore=explosions)
             self.draw_flights(flights, progress, player)
-            self.update()
-            self.event_handler()
-            self.clock.tick(self.fps)
-
-    def explode_gameover(self, board, explosions, player, callback):
-        """
-        Special case of exploding orbs, when game over
-        Calls callback in every iteration
-        Does not return until animation is over
-        Internal event handling
-        """
-
-        # set up origin and final indices for flight
-        flights = [
-            (origin, dest)
-            for origin in explosions
-            for dest in engine.NTABLE[origin]
-        ]
-
-        # uniform speed
-        for progress in range(self.flight_steps):
-            self.clear()
-            self.draw_grid()
-            self.draw_orbs(board, ignore=explosions)
-            self.draw_flights(flights, progress, player)
-            callback()
+            callback() if callback else None  # optional callback
             self.update()
             self.event_handler()
             self.clock.tick(self.fps)
@@ -364,25 +300,25 @@ class AnimatedGameWindow(BaseGameWindow):
             # get board and explosions for animation
             prev_board, explosions = game.get_next_step()
 
-            if explosions:
-                self.explode_orbs(prev_board, explosions, player)
-
+            # draw explosions
+            self.explode_orbs(prev_board, explosions, player)
             self.draw_all(game.board, game.player)
-            self.event_handler()
 
-        # unlock window
+        # unlock window after handling events
+        self.event_handler()
         self.locked = False
 
     def on_game_end(self, game: engine.ChainReactionAnimated):
         """ Game over screen """
 
-        # convert colors to grayscale
         global ORB_PL1, ORB_PL2
-        global COL_PL1, COL_PL2
-        global COL_GRD
-        COL_PL1 = (30, 30, 30)
-        COL_PL2 = (30, 30, 30)
-        COL_GRD = (30, 30, 30)
+        global COL_PLR1, COL_PLR2
+        global COL_FORE
+
+        # convert colors to grayscale
+        COL_PLR1 = (30, 30, 30)
+        COL_PLR2 = (30, 30, 30)
+        COL_FORE = (30, 30, 30)
         ORB_PL1 = [sprites.grayscale(x, 0.2) for x in ORB_PL1]
         ORB_PL2 = [sprites.grayscale(x, 0.2) for x in ORB_PL2]
 
@@ -396,31 +332,29 @@ class AnimatedGameWindow(BaseGameWindow):
         mscolor = (100, 255, 50) if game.winner else (255, 100, 50)
         game_over_text = font_instance.render(message, True, mscolor)
         text_w, text_h = game_over_text.get_size()
-        text_dest = (W_DIMS[0] // 2 - text_w // 2, W_DIMS[1] // 2 - text_h // 2)
+        text_dest = ((W_DIMS[0] - text_w) // 2, (W_DIMS[1] - text_h) // 2)
         blit_text = lambda: self.surface.blit(game_over_text, text_dest)
 
         # keep exploding for cool end-graphics
         while self.open and game.pending_moves:
             prev_board, explosions = game.get_next_step()
 
-            if explosions:
-                self.explode_gameover(prev_board, explosions, player, blit_text)
-
+            self.explode_orbs(prev_board, explosions, player, blit_text)
             self.clear()
             self.draw_grid()
+            self.draw_indicator(game.player)
             self.draw_orbs(game.board)
-            self.surface.blit(game_over_text, text_dest)
+            blit_text()
             self.update()
-            self.event_handler()
 
         # draw static if pending moves are over
         if not game.pending_moves:
             self.clear()
             self.draw_grid()
+            self.draw_indicator(game.player)
             self.draw_orbs(game.board)
-            self.surface.blit(game_over_text, text_dest)
+            blit_text()
             self.update()
-
             while self.open:
                 self.event_handler()
                 self.clock.tick(self.fps)

@@ -15,7 +15,7 @@
 # "orphan"   : no adjacent critical friendly cells
 
 
-import core.wrappers.engine as engine
+import chain_reaction.wrappers.engine as engine
 
 
 # ------------ UTILITIES -------------

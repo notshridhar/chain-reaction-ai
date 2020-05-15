@@ -1,4 +1,4 @@
-import core.backends.python.mcts_agent as mcts
+import chain_reaction.backends.python.mcts_agent as mcts
 
 
 # ------- WRAPPER FUNCTIONS --------

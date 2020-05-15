@@ -1,9 +1,19 @@
 # Chain Reaction AI
 AI opponent for the strategic board game Chain Reaction.
 
+
+## Installation
+To install the package in your computer, run the following (preferably in virtual environment)
+
+    git clone https://github.com/shridharrhegde/chain-reaction-ai
+    cd chain-reaction-ai
+    pip install -r requirements.txt
+    pip install .
+
+
 ## Usage
-    $ python3 play.py --help
-    usage: play.py [-h] [--minimal] [--c-backend] enemy
+    $ chain-reaction --help
+    usage: chain-reaction [-h] [--minimal] [--c-backend] enemy
 
     Chain Reaction
 
@@ -16,20 +26,15 @@ AI opponent for the strategic board game Chain Reaction.
     --c-backend  Use c for processing
 
 
+## Configurations
+To play a game with your own configurations, see sample.py
+
+
 ## Enemy Agents
 Here is a list of agents you can play against (in ascending levels of difficulty)
 1. __Random__ : Just a random move maker that picks from valid moves.
 2. __MCTS__ : Naive Monte Carlo Tree Search that simulates games randomly. Needs long time to be good enough.
 3. __Minimax__ : Simple DFS to minimize loss. Very hard to beat because of the aggressive static board evaluation function.
-
-
-## Configurations
-Agent Configurations can be found in config directory.
-The graphical configurations are stored as global variables in window.py
-
-
-## Building C Modules
-C backend modules are written to increase the search speed dramatically. To compile them and copy the libraries to the required folder, run `./build.sh`.
 
 
 ## Game Rules
@@ -46,17 +51,25 @@ A game against minimax agent looks like this -
 ![](images/preview.gif)
 
 
+## Uninstalling
+To uninstall, run
+    
+    pip uninstall chain-reaction
+
+
 ## Dependencies
 ### Runtime
 * python3
 * numpy
 * pygame
 
-### Building (C)
+### Building
+* wheel
 * setuptools
-* gcc (not tested on others)
+* gcc
 
 Tested on python 3.6 and pygame 1.9.6 on both Mac and Linux
+
 
 ## Licence
 The project is completely open-source under MIT Licence, so feel free to fork and modify this code. 

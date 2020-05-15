@@ -63,7 +63,7 @@ def interact_inplace(board: list, move: int, player: int) -> bool:
         pos += elem > 0
         neg += elem < 0
 
-    # store only enemy count
+    # swap counts if player is 1
     t_frn, t_enm = (neg, pos) if player else (pos, neg)
 
     while not (work.empty() or game_over):
@@ -128,9 +128,17 @@ def interact_onestep(board: list, moves: list, player: int) -> tuple:
     for elem in board:
         pos += elem > 0
         neg += elem < 0
-    
+
+    # swap counts if player is 1
+    t_frn, t_enm = (neg, pos) if player else (pos, neg)
+
+    # update even next moves
+    for nmove in next_moves:
+        t_frn += 1
+        t_enm -= board[nmove] * psign < 0
+
     # if game is mature and any one is zero, game is over
-    game_over = (pos + neg >= 2) and (pos * neg == 0)
+    game_over = (t_frn + t_enm > 2) and (t_enm <= 0)
     return (next_moves, explosions, game_over)
 
 
@@ -240,5 +248,5 @@ class ChainReactionAnimated:
         # update player if stable
         if not self.pending_moves:
             self.player = 1 - self.player
-        
+
         return (previous_board, explosions)

@@ -2,7 +2,7 @@ import time
 import math
 import random
 
-import core.wrappers.engine as engine
+import chain_reaction.wrappers.engine as engine
 
 
 # --------- UTILITY FUNCTIONS -----------

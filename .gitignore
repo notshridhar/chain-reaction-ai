@@ -1,6 +1,6 @@
 .vscode/
 .DS_Store
 __pycache__/
-csource/build/
-tests/
+build/
+temp/
 *.so
