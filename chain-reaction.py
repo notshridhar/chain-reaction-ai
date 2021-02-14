@@ -25,6 +25,11 @@ def get_args():
         action="store_true",
         help="Use c for processing",
     )
+    parser.add_argument(
+        "--startsecond",
+        action="store_true",
+        help="Swap player 1 and player 2."
+    )
     args = parser.parse_args()
     # fmt: on
 
@@ -51,6 +56,16 @@ def main():
         "minimax": {"search_depth": 1, "randomness": 3},
         "mcts": {"time_limit": 1.0, "c_param": 1.5},
     }
+
+    if args.startsecond:
+        player_temp = player1
+        config_temp = config1
+
+        player1 = player2
+        config1 = config2
+
+        player2 = player_temp
+        config2 = config_temp
 
     # start game with given parameters
     chain_reaction_game.start_game(
