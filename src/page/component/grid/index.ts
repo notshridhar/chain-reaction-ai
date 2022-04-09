@@ -1,0 +1,1 @@
+export { GridComponent } from './grid';

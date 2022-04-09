@@ -1,0 +1,11 @@
+<table>
+    <tr *ngFor="let _ of [].constructor(size[0]); index as i">
+        <td *ngFor="let _ of [].constructor(size[1]); index as j">
+            <app-cell
+                [pos]="[i, j]"
+                [props]="boardProps"
+                [state]="boardState[i][j]"
+            ></app-cell>
+        </td>
+    </tr>
+</table>

@@ -1,0 +1,19 @@
+:host {
+    --cell-size: 70px;
+    --cell-border: 2px;
+    --cell-content-size: calc(var(--cell-size) - var(--cell-border));
+}
+
+table {
+    position: relative;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+}
+
+td {
+    width: var(--cell-content-size);
+    height: var(--cell-content-size);
+    line-height: var(--cell-content-size);
+    border: var(--cell-border) solid #fff;
+}

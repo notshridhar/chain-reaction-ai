@@ -1,0 +1,37 @@
+:host {
+    display: inline-block;
+    position: absolute;
+    width: var(--cell-content-size);
+    height: var(--cell-content-size);
+    
+    cursor: pointer;
+}
+
+.blob {
+    --blob-size: calc(var(--cell-size) / 3);
+    --blob-glow-power: 0.6;
+
+    position: absolute;
+    display: inline-block;
+    height: var(--blob-size);
+    width: var(--blob-size);
+    
+    background-color: var(--blob-color);
+    border-radius: 50%;
+}
+
+.blob::before {
+    --blob-glow-size: calc(var(--blob-size) * var(--blob-glow-power));
+    --blob-glow-offset: calc(var(--blob-size) * (1 - var(--blob-glow-power)) * 0.5);
+
+    content: "";
+    position: absolute;
+    height: var(--blob-glow-size);
+    width: var(--blob-glow-size);
+    translate: var(--blob-glow-offset) var(--blob-glow-offset);
+    z-index: -1;
+
+    background-color: var(--blob-color);
+    border-radius: 50%;
+    filter: blur(7px);
+}
