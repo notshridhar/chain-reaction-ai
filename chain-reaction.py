@@ -41,6 +41,8 @@ def main():
     # get args
     args = get_args()
 
+    print(args)
+    
     # parameters
     shape = (9, 6)
     backend = "c" if args.c_backend else "python"
