@@ -120,13 +120,18 @@ def main():
     #using backend as python always
     backend = "python"
 
+    #Asking search_depth if minimax is selected
+    if(player1=='minimax' or player2=="minimax"):
+        print("For AI bot being selected as Minimax, Please enter the value for search depth (number): \n(Higher the depth limit, more the time it'll take for each decision to process)")
+        depth_limit = input()
+
     # configurations
     config1 = {
-        "minimax": {"search_depth": 1, "randomness": 3},
+        "minimax": {"search_depth": int(depth_limit), "randomness": 3},
         "mcts": {"time_limit": 1.0, "c_param": 1.5},
     }
     config2 = {
-        "minimax": {"search_depth": 1, "randomness": 3},
+        "minimax": {"search_depth": int(depth_limit), "randomness": 3},
         "mcts": {"time_limit": 1.0, "c_param": 1.5},
     }
 
